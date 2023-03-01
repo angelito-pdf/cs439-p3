@@ -1,77 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 
 function App() {
-  const [animalType, setAnimalType] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState("");
+  const [animal, setAnimal] = useState("both");
   const [images, setImages] = useState([]);
 
   useEffect(() => {
-    fetchImages();
-  }, [animalType, keyword]);
+    const apiUrl = `https://api.unsplash.com/photos/random?count=10&query=${keyword}${
+      animal !== "both" ? "&orientation=" + animal : ""
+    }&client_id=465DcHLSqViqfL61LPdLJMmETgqYtS5A3zKQM6eMAx4`;
 
-  const handleAnimalTypeChange = (event) => {
-    setAnimalType(event.target.value);
-  };
+    fetch(apiUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        setImages(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [keyword, animal]);
 
   const handleKeywordChange = (event) => {
     setKeyword(event.target.value);
   };
 
-  const fetchImages = async () => {
-    let apiUrl;
-    if (animalType === 'both') {
-      apiUrl = `https://api.unsplash.com/photos/random?count=10&query=dogs,cats,${keyword}&client_id=465DcHLSqViqfL61LPdLJMmETgqYtS5A3zKQM6eMAx4`;
-    } else {
-      apiUrl = `https://api.unsplash.com/photos/random?count=10&query=${animalType},${keyword}&client_id=465DcHLSqViqfL61LPdLJMmETgqYtS5A3zKQM6eMAx4`;
-    }
-
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    const imageUrls = data.map((image) => image.urls.regular);
-    setImages(imageUrls);
+  const handleAnimalChange = (event) => {
+    setAnimal(event.target.value);
   };
 
   return (
     <div>
-      <form>
-        <label>
-          <input
-            type="radio"
-            value="cats"
-            checked={animalType === 'cats'}
-            onChange={handleAnimalTypeChange}
-          />
+      <h1>Animals and Stuff</h1>
+      <h2>Are you a cat person or a dog person?</h2>
+      <div>
+        <button onClick={handleAnimalChange} value="cats">
           Cats
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="dogs"
-            checked={animalType === 'dogs'}
-            onChange={handleAnimalTypeChange}
-          />
+        </button>
+        <button onClick={handleAnimalChange} value="dogs">
           Dogs
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="both"
-            checked={animalType === 'both'}
-            onChange={handleAnimalTypeChange}
-          />
+        </button>
+        <button onClick={handleAnimalChange} value="both">
           Both
-        </label>
-        <br />
-        <label>
-          add a search term:
-          <input type="text" value={keyword} onChange={handleKeywordChange} />
-        </label>
-      </form>
-      {images.map((imageUrl) => (
-        <img key={imageUrl} src={imageUrl} alt="random" width="300" height="200" />
-      ))}
+        </button>
+      </div>
+      <input type="text" placeholder="Enter a keyword" onChange={handleKeywordChange} />
+      <div>
+        {images.map((image) => (
+          <img key={image.id} src={image.urls.regular} alt={image.alt_description} />
+        ))}
+      </div>
     </div>
   );
 }
 
-export default App;
+ReactDOM.render(<App />, document.getElementById("root"));
